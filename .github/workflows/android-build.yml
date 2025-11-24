@@ -53,6 +53,28 @@ jobs:
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest"
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
 
+      - name: Ensure Gradle wrapper exists (generate if missing)
+        run: |
+          set -e
+          # 尝试在仓库中找到 gradlew
+          FOUND=$(find . -type f -name gradlew -print -quit || true)
+          if [ -n "$FOUND" ]; then
+            echo "gradlew already present: $FOUND"
+            exit 0
+          fi
+          echo "gradlew not found — installing Gradle and generating wrapper"
+          sudo apt-get update -y
+          sudo apt-get install -y gradle
+          # 在仓库根目录运行 gradle wrapper（若项目在子目录，调整此处）
+          gradle wrapper
+          if [ ! -f "./gradlew" ]; then
+            echo "Failed to generate gradlew via 'gradle wrapper'." >&2
+            ls -la
+            exit 1
+          fi
+          chmod +x ./gradlew
+          echo "GRADLEW_PATH=./gradlew" >> $GITHUB_ENV
+
       - name: Locate and make gradlew executable
         run: |
           set -e
