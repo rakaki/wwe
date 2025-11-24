@@ -35,13 +35,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Set up JDK 11
+      - name: Set up JDK 11 (for Android SDK tools)
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '8'
-      # 使用 Java 8 以兼容老旧 Gradle（例如 gradle-4.4.1）
-      - name: Verify Java version
+          java-version: '11'
+      - name: Verify Java 11
         run: java -version
 
       - name: Install Android SDK and build-tools
@@ -55,6 +54,14 @@ jobs:
           mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/ || true
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest"
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
+
+      - name: Set up JDK 8 (for Gradle)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '8'
+      - name: Verify Java 8
+        run: java -version
 
       - name: Ensure Gradle wrapper exists (generate if missing)
         run: |
