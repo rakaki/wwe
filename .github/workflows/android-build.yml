@@ -56,16 +56,26 @@ jobs:
       - name: Locate and make gradlew executable
         run: |
           set -e
-          # 在仓库中查找第一个 gradlew 文件（深度可根据项目调整）
-          GRADLEW_PATH=$(find . -maxdepth 4 -type f -name gradlew -print -quit || true)
+          # 在仓库中查找 gradlew（取消 maxdepth，确保深层目录也能找到）
+          GRADLEW_PATH=$(find . -type f -name gradlew -print -quit || true)
+          # 如果没找到，检查常见子目录
           if [ -z "$GRADLEW_PATH" ]; then
-            echo "gradlew not found in repository. Listing repo root for debugging:" >&2
-            ls -la
+            for d in ./app ./android ./project ./workspace; do
+              if [ -f "$d/gradlew" ]; then
+                GRADLEW_PATH="$d/gradlew"
+                break
+              fi
+            done
+          fi
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "gradlew not found in repository. Listing repo tree for debugging:" >&2
+            # 限制输出行数以防超长
+            ls -laR | sed -n '1,500p' >&2
+            echo "ERROR: gradlew wrapper is missing. Commit the gradlew wrapper (gradlew + gradlew.bat + gradle/wrapper) or adjust the workflow to run in the correct subdirectory." >&2
             exit 1
           fi
           echo "Found gradlew at: $GRADLEW_PATH"
           chmod +x "$GRADLEW_PATH"
-          # 保存供后续步骤使用
           echo "GRADLEW_PATH=$GRADLEW_PATH" >> $GITHUB_ENV
 
       - name: Build (assembleDebug)
@@ -75,7 +85,10 @@ jobs:
             echo "GRADLEW_PATH is not set" >&2
             exit 1
           fi
-          "$GRADLEW_PATH" assembleDebug --no-daemon --stacktrace
+          # 进入 gradlew 所在目录再执行（有助于项目多模块 / 子目录情况）
+          GRADLEW_DIR=$(dirname "$GRADLEW_PATH")
+          cd "$GRADLEW_DIR"
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
