@@ -53,11 +53,29 @@ jobs:
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest"
           yes | cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      - name: Locate and make gradlew executable
+        run: |
+          set -e
+          # 在仓库中查找第一个 gradlew 文件（深度可根据项目调整）
+          GRADLEW_PATH=$(find . -maxdepth 4 -type f -name gradlew -print -quit || true)
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "gradlew not found in repository. Listing repo root for debugging:" >&2
+            ls -la
+            exit 1
+          fi
+          echo "Found gradlew at: $GRADLEW_PATH"
+          chmod +x "$GRADLEW_PATH"
+          # 保存供后续步骤使用
+          echo "GRADLEW_PATH=$GRADLEW_PATH" >> $GITHUB_ENV
 
       - name: Build (assembleDebug)
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          set -e
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "GRADLEW_PATH is not set" >&2
+            exit 1
+          fi
+          "$GRADLEW_PATH" assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
