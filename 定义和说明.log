@@ -1,0 +1,187 @@
+Shizuku配对激活…mt替换
+
+可以快速理解每个参数的作用，避免误解或错误配置
+
+Android配置文件路径
+/storage/emulated/0/Android/data/com.kurogame.mingchao/files/UE4Game/Client/Client/Saved/Config/Android/
+    
+    -----------------------------
+
+高配在游戏内设置调整画质优先（隐藏参数数值提升）
+修改后游戏（特效 阴影 画面细节）设置调整优先度最高（更低一级的会被忽略）分辨率调整不影响实际输出（建议调为低）
+
+            DeviceProfiles.ini
+            已做设备GPU分级   DeviceProfiles.ini
+                            Very High非常高
+                            High高
+                            Mid中
+                            Low低
+Android GPU 分级信息，按性能等级从高到低分为 4个等级（VeryHigh、High、Mid、Low）
+
+有一亿点点不准
+
+1. 极高（VeryHigh）
+ 基准配置：BaseProfileName=Android_VeryHigh
+ 适配芯片：
+   高通Adreno系列：Adreno 810、830、8xx系列
+   ARM Mali系列：Mali G710、G715、G720、G925
+
+
+2. 高（High）
+ 基准配置：BaseProfileName=Android_High
+ 适配芯片：
+   高通Adreno系列：Adreno 5xx（中端）、6xx（部分）、7xx系列
+   ARM Mali系列：Mali G76、G77、G78、G68
+
+
+3. 中（Mid）
+ 基准配置：BaseProfileName=Android_Mid
+ 适配芯片：
+   高通Adreno系列：Adreno 5xx（低端）、6xx（低端）
+   ARM Mali系列：Mali T8xx、G5x（部分）、G71、G72
+
+
+4. 低（Low）
+ 基准配置：BaseProfileName=Android_Low
+ 适配芯片：
+   高通Adreno系列：Adreno 4xx、6xx（最低端）
+   ARM Mali系列：Mali T6xx、T7xx、G5x（低端）、G61x、G62x
+
+DeviceProfiles.ini里 CVars=r.MobileContentScaleFactor=1.5 1.0原先分辨率  1.5=1080  1.75=1.5k  2=2k（要屏幕分辨率的话，直接改为零）各GPU分级所属处（VeryHigh、High、Mid、Low）
+r.SecondaryScreenPercentage.GameViewport=100 ; 副屏幕视口渲染百分比，将游戏视口的次级屏幕渲染分辨率缩放比
+例设置为100%」
+
+     -----------------------------
+
+游戏内设置亮度最低或20% FSR开  建议在设置打开抗锯齿
+
+r.Fog=0（关雾）
+    
+      -----------------------------
+
+DeviceProfiles.ini 文件参数详细翻译与说明
+
+### [Android DeviceProfile]
+   CVars 参数说明：
+   
+   r.RHICmdBypass=0 ; 禁用 RHI 命令绕过
+
+### 设备性能分级配置 
+#### [Android_VeryHigh DeviceProfile]
+ 图形质量参数：
+   sg.ViewDistanceQuality= ; 视距质量
+   sg.AntiAliasingQuality= ; 抗锯齿质量
+   sg.ShadowQuality= ; 阴影质量
+   sg.PostProcessQuality= ; 后处理质量
+   sg.TextureQuality= ; 纹理质量
+   sg.EffectsQuality= ; 特效质量
+   sg.FoliageQuality= ; 植被渲染质量
+   r.Mobile.WaterQuality= ; 水面效果质量
+   r.Mobile.HighQualityMaterial=1 ; 启用高质量材质
+   r.MaxAnisotropy= ; 各向异性过滤级别,提升纹理在角度较大时的清晰度减少模糊 数值4-16
+    
+      设备型号继承
+
+    可自行尝试数值修改
+     -----------------------------
+    engine
+[/Script/Engine.RendererSettings]
+
+
+ GameUserSettings.ini
+ 
+ [ScalabilityGroups]  部分参数数值可以在DeviceProfiles.ini 修改变更（未在DeviceProfiles.ini）需在前面加上CVars=
+   示例：
+
+sg.ResolutionQuality=100.000000 ; 分辨率质量
+sg.ViewDistanceQuality=3 ; 视距质量
+sg.AntiAliasingQuality=3 ; 抗锯齿质量
+sg.ShadowQuality=4 ; 阴影质量
+sg.PostProcessQuality=2 ; 后处理效果质量
+sg.TextureQuality=3 ; 纹理质量
+sg.EffectsQuality=2 ; 特效质量
+sg.FoliageQuality=2 ; 植被质量
+sg.ShadingQuality=4 ; 着色质量
+sg.KuroRenderQuality=11 ; "Kuro"项目渲染质量
+sg.RayTracingQuality=0 ; 光线追踪质量
+
+[/Script/Engine.GameUserSettings]
+bUseVSync=True ; 垂直同步=启用，锁定帧率与刷新率同步（防撕裂）
+bUseDynamicResolution=False ; 动态分辨率=禁用，保持固定分辨率输出
+ResolutionSizeX=2408 ; 分辨率宽度=2408像素（主屏幕横向像素）
+ResolutionSizeY=1080 ; 分辨率高度=1080像素（主屏幕纵向像素）
+LastUserConfirmedResolutionSizeX=2408 ; 上次确认的分辨率宽度=2408
+LastUserConfirmedResolutionSizeY=1080 ; 上次确认的分辨率高度=1080
+WindowPosX=-1 ; 窗口位置X坐标=-1（居中或默认）
+WindowPosY=-1 ; 窗口位置Y坐标=-1（居中或默认）
+FullscreenMode=1 ; 全屏模式=1（独占全屏），禁用窗口化
+GameQualitySettingLevel=5 ; 全局画质等级（自定义预设）
+LastConfirmedFullscreenMode=1 ; 上次确认的全屏模式
+PreferredFullscreenMode=0 ; 偏好全屏模式
+Version=5 ; 配置版本=5（引擎兼容标识）
+AudioQualityLevel=0 ; 音频质量，启用3D音效与高码率采样
+LastConfirmedAudioQualityLevel=0 ; 上次确认的音频质量=0
+FrameRateLimit=60.000000 ; 帧率限制=60帧/秒，锁定最大刷新率
+DesiredScreenWidth=1280 ; 期望屏幕宽度=1280
+bUseDesiredScreenHeight=False ; 使用期望屏幕高度=禁用，仅宽度生效
+DesiredScreenHeight=720 ; 期望屏幕高度=720
+LastUserConfirmedDesiredScreenWidth=1280 ; 上次确认的期望宽度=1280
+LastUserConfirmedDesiredScreenHeight=720 ; 上次确认的期望高度=720
+LastRecommendedScreenWidth=-1.000000 ; 上次推荐的屏幕宽度=-1（未记录）
+LastRecommendedScreenHeight=-1.000000 ; 上次推荐的屏幕高度=-1（未记录）
+LastCPUBenchmarkResult=-1.000000 ; 上次CPU基准测试结果=-1（未运行测试）
+LastGPUBenchmarkResult=-1.000000 ; 上次GPU基准测试结果=-1（未运行测试）
+LastGPUBenchmarkMultiplier=1.000000 ; GPU基准测试倍率=1.0（默认校准值）
+bUseHDRDisplayOutput=False ; HDR显示输出=禁用，使用SDR色彩空间
+HDRDisplayOutputNits=1000 ; HDR亮度=1000尼特（预设值，当前未生效）
+
+[Internationalization]
+Culture=zh-Hans ; 本地化语言=简体中文，界面与文本显示为中文
+
+  -----------------------------
+
+ 
+   
+(=^･ω･^=)  
+  /\_/\  
+ ( o.o )                                                                                              
+ > ^ < 
+log/日志
+/storage/emulated/0/Android/data/com.kurogame.mingchao/files/UE4Game/Client/Client/Saved/Logs/
+
+日志可以排查部分问题，比如增加参数后启动游戏后查看生成的日志内搜索是否存在此设置（复制参数搜索 例：r.MaxAnisotropy），没有则无效；以及参数数值（部分会被强制修改）
+
+engine.ini可以增加不记录全部log
+[Core.Log]
+Global=off
+
+
+鸣潮
+
+
+██╗  ██╗██╗   ██╗██████╗  ██████╗  ██████╗  █████╗ ███╗   ███╗███████╗
+██║ ██╔╝██║   ██║██╔══██╗██╔═══██╗██╔════╝ ██╔══██╗████╗ ████║██╔════╝
+█████╔╝ ██║   ██║██████╔╝██║   ██║██║  ███╗███████║██╔████╔██║█████╗  
+██╔═██╗ ██║   ██║██╔══██╗██║   ██║██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  
+██║  ██╗╚██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
+╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://space.bilibili.com/1526403384
